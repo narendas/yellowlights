@@ -2,7 +2,6 @@ import cv2
 import os,shutil
 from django.shortcuts import render
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 import numpy as np
 import tensorflow as tf
 import random
@@ -11,7 +10,6 @@ from PIL import Image
 from easydict import EasyDict as edict
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.compat.v1 import ConfigProto
-
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 output = os.path.join(BASE_DIR, 'detections/')
 weights = (os.path.join(BASE_DIR, 'weights/'))
@@ -34,7 +32,6 @@ __C.YOLO.STRIDES              = [8, 16, 32]
 __C.YOLO.XYSCALE              = [1.2, 1.1, 1.05]
 __C.YOLO.ANCHOR_PER_SCALE     = 3
 __C.YOLO.IOU_LOSS_THRESH      = 0.5
-
 def read_class_names(class_file_name):
     names = {}
     with open(class_file_name, 'r') as data:
@@ -67,11 +64,9 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = 
     hsv_tuples = [(1.0 * x / num_classes, 1., 1.) for x in range(num_classes)]
     colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
     colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
-
     random.seed(0)
     random.shuffle(colors)
     random.seed(None)
-
     out_boxes, out_scores, out_classes, num_boxes = bboxes
     for i in range(num_boxes):
         if int(out_classes[i]) < 0 or int(out_classes[i]) > num_classes: continue
@@ -97,8 +92,7 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = 
                 bbox_mess = '%s: %.2f' % (class_name, score)
                 t_size = cv2.getTextSize(bbox_mess, 0, fontScale, thickness=bbox_thick // 2)[0]
                 c3 = (c1[0] + t_size[0], c1[1] - t_size[1] - 3)
-                cv2.rectangle(image, c1, (np.float32(c3[0]), np.float32(c3[1])), bbox_color, -1) #filled
-
+                cv2.rectangle(image, c1, (np.float32(c3[0]), np.float32(c3[1])), bbox_color, -1)
                 cv2.putText(image, bbox_mess, (c1[0], np.float32(c1[1] - 2)), cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale, (0, 0, 0), bbox_thick // 2, lineType=cv2.LINE_AA)
             if counted_classes != None:
@@ -147,7 +141,6 @@ STRIDES, ANCHORS, NUM_CLASSES, XYSCALE = load_config()
 input_size = 416
 saved_model_load = tf.saved_model.load(weights, tags = [tag_constants.SERVING])
 infer = saved_model_load.signatures['serving_default']
-out = None
 class VideoCamera(object):
     def __init__(self):
         self.video = cv2.VideoCapture(0)
@@ -176,11 +169,7 @@ def gen(camera):
         class_names = read_class_names(cfg.YOLO.CLASSES)
         allowed_classes = list(class_names.values())
         counted_classes = count_objects(pred_bbox, by_class = True, allowed_classes=allowed_classes)
-        image = draw_bbox(frame,
-                          pred_bbox,
-                          counted_classes,
-                          allowed_classes = allowed_classes,
-                          read_text = False)
+        image = draw_bbox(frame,pred_bbox,counted_classes,allowed_classes = allowed_classes,read_text = False)
         result = np.asarray(image)
         result = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         ret, jpeg = cv2.imencode('.jpg', result)
