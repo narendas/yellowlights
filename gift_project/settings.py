@@ -5,8 +5,8 @@ TEMPLATE_DIR=os.path.join(BASE_DIR,'templates')
 STATIC_DIR=os.path.join(BASE_DIR,'static')
 STATIC_ROOT=os.path.join(BASE_DIR,'staticfiles')
 SECRET_KEY = 'z)ni3mo8_c*#2j(gaqajyxk*@=k1i!5^@d%o61v2q@udag@0v!'
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = False
+ALLOWED_HOSTS = ['yellolights/herokuapp.com','127.0.0.1']
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
