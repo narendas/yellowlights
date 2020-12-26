@@ -1,37 +1,34 @@
-import cv2
-import os,shutil
-from django.shortcuts import render
+import cv2,os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
 import tensorflow as tf
-import random
-import colorsys
+import random,colorsys
 from PIL import Image
 from easydict import EasyDict as edict
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.compat.v1 import ConfigProto
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-output = os.path.join(BASE_DIR, 'detections/')
-weights = (os.path.join(BASE_DIR, 'weights/'))
+output = os.path.join(BASE_DIR,'detections/')
+weights = (os.path.join(BASE_DIR,'weights/'))
 __C = edict()
 cfg = __C
 __C.YOLO = edict()
-__C.YOLO.CLASSES = os.path.join(BASE_DIR, 'data/classes.names')
-__C.YOLO.ANCHORS_TINY = [23,27, 37,58, 81,82, 81,82, 135,169, 344,319]
-__C.YOLO.STRIDES_TINY = [16, 32]
-__C.YOLO.XYSCALE_TINY = [1.05, 1.05]
-__C.YOLO.ANCHOR_PER_SCALE = 3
-__C.YOLO.IOU_LOSS_THRESH = 0.5
+__C.YOLO.CLASSES = os.path.join(BASE_DIR,'data/classes.names')
+__C.YOLO.ANCHORS_TINY =[23,27, 37,58, 81,82, 81,82, 135,169, 344,319]
+__C.YOLO.STRIDES_TINY =[16, 32]
+__C.YOLO.XYSCALE_TINY =[1.05, 1.05]
+__C.YOLO.ANCHOR_PER_SCALE =3
+__C.YOLO.IOU_LOSS_THRESH =0.5
 __C.YOLO.ANCHORS= [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401]
 __C.YOLO.STRIDES= [8, 16, 32]
 __C.YOLO.XYSCALE= [1.2, 1.1, 1.05]
-__C.YOLO.ANCHOR_PER_SCALE     = 3
-__C.YOLO.IOU_LOSS_THRESH      = 0.5
-__C.YOLO.ANCHORS              = [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401]
-__C.YOLO.STRIDES              = [8, 16, 32]
-__C.YOLO.XYSCALE              = [1.2, 1.1, 1.05]
-__C.YOLO.ANCHOR_PER_SCALE     = 3
-__C.YOLO.IOU_LOSS_THRESH      = 0.5
+__C.YOLO.ANCHOR_PER_SCALE= 3
+__C.YOLO.IOU_LOSS_THRESH= 0.5
+__C.YOLO.ANCHORS= [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401]
+__C.YOLO.STRIDES= [8, 16, 32]
+__C.YOLO.XYSCALE= [1.2, 1.1, 1.05]
+__C.YOLO.ANCHOR_PER_SCALE= 3
+__C.YOLO.IOU_LOSS_THRESH= 0.5
 def read_class_names(class_file_name):
     names = {}
     with open(class_file_name, 'r') as data:
@@ -42,9 +39,7 @@ def load_config():
     STRIDES = np.array(cfg.YOLO.STRIDES_TINY)
     ANCHORS = get_anchors(cfg.YOLO.ANCHORS_TINY)
     XYSCALE = cfg.YOLO.XYSCALE_TINY
-
     NUM_CLASS = len(read_class_names(cfg.YOLO.CLASSES))
-
     return STRIDES, ANCHORS, NUM_CLASS, XYSCALE
 def get_anchors(anchors_path):
     anchors = np.array(anchors_path)
@@ -99,8 +94,7 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = 
                 height_ratio = int(image_h / 25)
                 offset = 15
                 for key, value in counted_classes.items():
-                    cv2.putText(image, "{}s detected: {}".format(key, value), (5, offset),
-                            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 2)
+                    cv2.putText(image, "{}s detected: {}".format(key, value), (5, offset),cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 2)
                     offset += height_ratio
     return image
 def count_objects(data, by_class = False, allowed_classes = list(read_class_names(cfg.YOLO.CLASSES).values())):

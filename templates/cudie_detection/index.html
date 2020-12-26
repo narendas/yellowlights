@@ -11,14 +11,11 @@
   <body class='bg'>
     <div class="container">
       <div class="row">
-        <div class="col-lg-6" id='col-1'>
+        <div class="col-lg-12" id='col-1'>
           <h1>{{insert_me}}</h1>
           <div id='Webcam'>
             <img src="{% url 'video_stream' %}">
           </div>
-        </div>
-      <div class="col-lg-6" id='col-2'>
-          <h1>Login</h1>
         </div>
     </div>
     </div>
@@ -27,7 +24,7 @@
       const startit=()=>{setTimeout(function(){confetti.start();},1000)};
       const stopit=()=>{setTimeout(function(){confetti.stop();},6000)};
       const date= new Date();
-      if (date.toLocaleDateString()=='12/26/2020') {startit();stopit();}
+      if (date.toLocaleDateString()=='12/31/2020') {startit();stopit();}
     </script>
   </body>
 </html>
