@@ -6,7 +6,7 @@ STATIC_DIR=os.path.join(BASE_DIR,'static')
 STATIC_ROOT=os.path.join(BASE_DIR,'staticfiles')
 SECRET_KEY = 'z)ni3mo8_c*#2j(gaqajyxk*@=k1i!5^@d%o61v2q@udag@0v!'
 DEBUG = False
-ALLOWED_HOSTS = ['yellowlights.herokuapp.com','127.0.0.1']
+ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
