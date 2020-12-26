@@ -13,15 +13,8 @@ from tensorflow.python.saved_model import tag_constants
 from tensorflow.compat.v1 import ConfigProto
 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-
 output = os.path.join(BASE_DIR, 'detections/')
 weights = (os.path.join(BASE_DIR, 'weights/'))
-#==============================================================================
-
-
-# YOLOv4 config
-#==============================================================================
-
 __C = edict()
 cfg = __C
 __C.YOLO = edict()
@@ -31,9 +24,9 @@ __C.YOLO.STRIDES_TINY = [16, 32]
 __C.YOLO.XYSCALE_TINY = [1.05, 1.05]
 __C.YOLO.ANCHOR_PER_SCALE = 3
 __C.YOLO.IOU_LOSS_THRESH = 0.5
-__C.YOLO.ANCHORS              = [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401]
-__C.YOLO.STRIDES              = [8, 16, 32]
-__C.YOLO.XYSCALE              = [1.2, 1.1, 1.05]
+__C.YOLO.ANCHORS= [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401]
+__C.YOLO.STRIDES= [8, 16, 32]
+__C.YOLO.XYSCALE= [1.2, 1.1, 1.05]
 __C.YOLO.ANCHOR_PER_SCALE     = 3
 __C.YOLO.IOU_LOSS_THRESH      = 0.5
 __C.YOLO.ANCHORS              = [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401]
@@ -41,11 +34,6 @@ __C.YOLO.STRIDES              = [8, 16, 32]
 __C.YOLO.XYSCALE              = [1.2, 1.1, 1.05]
 __C.YOLO.ANCHOR_PER_SCALE     = 3
 __C.YOLO.IOU_LOSS_THRESH      = 0.5
-
-
-#==============================================================================
-# Read the classes
-#==============================================================================
 
 def read_class_names(class_file_name):
     names = {}
@@ -53,11 +41,6 @@ def read_class_names(class_file_name):
         for ID, name in enumerate(data):
             names[ID] = name.strip('\n')
     return names
-
-#==============================================================================
-
-# Load the Config function defined on top
-#==============================================================================
 def load_config():
     STRIDES = np.array(cfg.YOLO.STRIDES_TINY)
     ANCHORS = get_anchors(cfg.YOLO.ANCHORS_TINY)
@@ -66,21 +49,9 @@ def load_config():
     NUM_CLASS = len(read_class_names(cfg.YOLO.CLASSES))
 
     return STRIDES, ANCHORS, NUM_CLASS, XYSCALE
-
-#==============================================================================
-
-# Get the anchors from the config file
-#==============================================================================
-
 def get_anchors(anchors_path):
     anchors = np.array(anchors_path)
     return anchors.reshape(2, 3, 2)
-
-#==============================================================================
-
-# function to convert bounding boxes from normalized ymin, xmin, ymax, xmax ---> xmin, ymin, xmax, ymax
-#==============================================================================
-
 def format_boxes(bboxes, image_height, image_width):
     for box in bboxes:
         ymin = int(box[0] * image_height)
@@ -89,12 +60,6 @@ def format_boxes(bboxes, image_height, image_width):
         xmax = int(box[3] * image_width)
         box[0], box[1], box[2], box[3] = xmin, ymin, xmax, ymax
     return bboxes
-
-#==============================================================================
-
-# Draw bounding boxes
-#==============================================================================
-
 def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = True, allowed_classes = list(read_class_names(cfg.YOLO.CLASSES).values()), read_text = False):
     classes = read_class_names(cfg.YOLO.CLASSES)
     num_classes = len(classes)
@@ -124,12 +89,10 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = 
                 if img_text != None:
                     cv2.putText(image, img_text, (int(coor[0]), int(coor[1]-height_ratio)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255,255,0), 2)
-
             bbox_color = colors[class_ind]
             bbox_thick = int(0.6 * (image_h + image_w) / 600)
             c1, c2 = (coor[0], coor[1]), (coor[2], coor[3])
             cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
-
             if show_label:
                 bbox_mess = '%s: %.2f' % (class_name, score)
                 t_size = cv2.getTextSize(bbox_mess, 0, fontScale, thickness=bbox_thick // 2)[0]
@@ -138,7 +101,6 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = 
 
                 cv2.putText(image, bbox_mess, (c1[0], np.float32(c1[1] - 2)), cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale, (0, 0, 0), bbox_thick // 2, lineType=cv2.LINE_AA)
-
             if counted_classes != None:
                 height_ratio = int(image_h / 25)
                 offset = 15
@@ -147,110 +109,53 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label = 
                             cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 2)
                     offset += height_ratio
     return image
-
-#==============================================================================
-
-# function to count objects, can return total classes or count per class
-#==============================================================================
-
 def count_objects(data, by_class = False, allowed_classes = list(read_class_names(cfg.YOLO.CLASSES).values())):
     boxes, scores, classes, num_objects = data
-
-    #create dictionary to hold count of objects
     counts = dict()
-
-    # if by_class = True then count objects per class
     if by_class:
         class_names = read_class_names(cfg.YOLO.CLASSES)
-
-        # loop through total number of objects found
         for i in range(num_objects):
-            # grab class index and convert into corresponding class name
             class_index = int(classes[i])
             class_name = class_names[class_index]
             if class_name in allowed_classes:
                 counts[class_name] = counts.get(class_name, 0) + 1
             else:
                 continue
-
-    # else count total objects found
     else:
         counts['total object'] = num_objects
-
     return counts
-
-#==============================================================================
-
-# Function to detect the blur in any frame
-#==============================================================================
-
 def detect_blur(image):
     return cv2.Laplacian(image, cv2.CV_64F).var()
-
-#==============================================================================
-
-#Functions to crop the regions enclosed by the bounding boxes
-#==============================================================================
-
 def crop_objects(img, data, path, allowed_classes):
     boxes, scores, classes, num_objects = data
     class_names = read_class_names(cfg.YOLO.CLASSES)
-    #create dictionary to hold count of objects for image name
     counts = dict()
     for i in range(num_objects):
-        # get count of class for part of image name
         class_index = int(classes[i])
         class_name = class_names[class_index]
         if class_name in allowed_classes:
             counts[class_name] = counts.get(class_name, 0) + 1
-            # get box coords
             xmin, ymin, xmax, ymax = boxes[i]
-            # crop detection from image (take an additional 5 pixels around all edges)
             cropped_img = img[int(ymin)-5:int(ymax)+5, int(xmin)-5:int(xmax)+5]
-            # construct image name and join it to path for saving crop properly
             img_name = class_name + '_' + str(counts[class_name]) + '.png'
             img_path = os.path.join(path, img_name )
-            # save image
             cv2.imwrite(img_path, cropped_img)
         else:
             continue
-
 config = ConfigProto()
-
 STRIDES, ANCHORS, NUM_CLASSES, XYSCALE = load_config()
-
 input_size = 416
-video_path = os.path.join(BASE_DIR, 'data/videos/test2.mp4')
-
-video_name = video_path.split('/')[-1]
-video_name = video_name.split('.')[0]
-
 saved_model_load = tf.saved_model.load(weights, tags = [tag_constants.SERVING])
 infer = saved_model_load.signatures['serving_default']
 out = None
-
 class VideoCamera(object):
     def __init__(self):
-        # Using OpenCV to capture from device 0. If you have trouble capturing
-        # from a webcam, comment the line below out and use a video file
-        # instead.
         self.video = cv2.VideoCapture(0)
-        #self.cudie_detected=False
-        # If you decide to use video.mp4, you must have this file in the folder
-        # as the main.py.
-        # self.video = cv2.VideoCapture('video.mp4')
-
     def __del__(self):
         self.video.release()
-
     def get_frame(self):
         success, image = self.video.read()
-        # We are using Motion JPEG, but OpenCV defaults to capture raw images,
-        # so we must encode it into JPEG in order to correctly display the
-        # video stream.
         return image
-
-
 def gen(camera):
     while True:
         frame = camera.get_frame()
@@ -259,38 +164,23 @@ def gen(camera):
         image_data = cv2.resize(frame, (input_size, input_size))
         image_data = image_data / 255.0
         image_data = image_data[np.newaxis, ...].astype(np.float32)
-
         batch_data = tf.constant(image_data)
         pred_bbox = infer(batch_data)
-
         for key, value in pred_bbox.items():
             boxes = value[:, :, 0 : 4]
             pred_conf = value[:, :, 4:]
-
-        boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
-            boxes = tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
-            scores = tf.reshape(pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
-            max_output_size_per_class = 10,
-            max_total_size = 50,
-            iou_threshold = 0.45,
-            score_threshold = 0.6)
-
+        boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(boxes = tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),scores = tf.reshape(pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),max_output_size_per_class = 10,max_total_size = 50,iou_threshold = 0.45,score_threshold = 0.6)
         original_h, original_w, _ = frame.shape
         bboxes = format_boxes(boxes.numpy()[0], original_h, original_w)
-
         pred_bbox = [bboxes, scores.numpy()[0], classes.numpy()[0], valid_detections.numpy()[0]]
-
         class_names = read_class_names(cfg.YOLO.CLASSES)
-
         allowed_classes = list(class_names.values())
-
         counted_classes = count_objects(pred_bbox, by_class = True, allowed_classes=allowed_classes)
         image = draw_bbox(frame,
                           pred_bbox,
                           counted_classes,
                           allowed_classes = allowed_classes,
                           read_text = False)
-
         result = np.asarray(image)
         result = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         ret, jpeg = cv2.imencode('.jpg', result)
